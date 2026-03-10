@@ -1,36 +1,36 @@
-# Mini Journal (Hand-in 1)
+# Mini Journal
 
-This is a small static “mini journal” website I made for **Web Technologies Basics (SE_19)**.
+This is a super small “mini journal” project for **Web Technologies Basics (SE_19)**.
 
-It’s meant to be very basic!
+It’s still meant to stay basic on purpose, but now it has a tiny Flask backend with a few routes and one dynamic route.
 
-## Pages
+## Routes / Pages
 
-* **index.html** - home page
-* **entries.html** - a list of 5 example entries (static)
-* **new.html** - a simple form for a new entry (doesn’t actually save anything yet)
+- `/` – home page  
+- `/entries` – list of example entries (server-rendered)  
+- `/entries/<id>` – entry detail page (dynamic route)  
+- `/new` – a simple form (still doesn’t save anything yet)
 
 ## Run it locally
 
-You can just open `index.html` in your browser.
+1) Install dependencies:
+- `pip install flask`
 
-If you prefer running it on localhost:
+2) Start the server:
+- `python app.py`
 
-* python3 -m http.server 8000
-
-
-Then open:
-
-* `http://localhost:8000/index.html`
+3) Open in your browser:
+- `http://127.0.0.1:5000`
 
 ## Responsive / breakpoints
 
-I used two breakpoints:
+I kept the same responsive layout:
 
-* **below 600px:** nav stacks vertically
-* **600px and up:** nav becomes horizontal
-* **900px and up:** entries switch to a 2-column grid
+- **below 600px:** navigation is compact
+- **600px and up:** navigation has more spacing + padding
+- **900px and up:** entries switch to a 2-column grid
 
 ## Small note
 
-This is only the HTML + CSS part for hand-in 1. The plan is to add backend/database stuff later.
+Entries are hardcoded in `app.py` for now. No database, no login, no saving.
+
