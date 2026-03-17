@@ -2,6 +2,9 @@ from flask import Flask, render_template, abort
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 
+app.config.from_object("config")
+
+
 entries = [
     {"id": 1, "date": "2025-02-01", "title": "First day back",
      "content": "Semester started today, already three deadlines on the board."},
@@ -39,4 +42,4 @@ def new_entry():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
