@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entries</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav>
+        <a href="/">Home</a>
+        <a href="/entries">Entries</a>
+        <a href="/new">New Entry</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>All Entries</h1>
+
+      <div class="entries-grid">
+        {% for entry in entries %}
+        <a href="/entries/{{ entry.id }}" style="text-decoration: none; color: inherit;">
+          <article class="card">
+            <span class="date">{{ entry.date }}</span>
+            <h2>{{ entry.title }}</h2>
+            <p>{{ entry.content }}</p>
+          </article>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Tell me your thoughts!</p>
+    </div>
+  </footer>
+
+</body>
+</html>
