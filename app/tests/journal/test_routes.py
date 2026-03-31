@@ -1,3 +1,9 @@
+from datetime import date
+
+from app.extensions.database import db
+from app.journal.models import Entry
+
+
 ### Simple routes tests ###
 
 def test_index_success(client):
@@ -48,3 +54,48 @@ def test_single_entry_content(client):
   response = client.get('/entries/1')
   assert b'First day back' in response.data
 
+
+def test_create_entry(client):
+  response = client.post(
+    '/new',
+    data={
+      'title': 'Created in test',
+      'date': '2026-04-01',
+      'content': 'This entry came from a POST request.',
+    },
+    follow_redirects=False,
+  )
+
+  created_entry = Entry.query.filter_by(title='Created in test').first()
+  assert created_entry is not None
+  assert created_entry.date == date(2026, 4, 1)
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith(f'/entries/{created_entry.id}')
+
+
+def test_update_entry(client):
+  response = client.post(
+    '/entries/1',
+    data={
+      'title': 'First day back updated',
+      'date': '2025-02-02',
+      'content': 'Updated content for the first entry.',
+    },
+    follow_redirects=False,
+  )
+
+  updated_entry = db.session.get(Entry, 1)
+  assert updated_entry.title == 'First day back updated'
+  assert updated_entry.date == date(2025, 2, 2)
+  assert updated_entry.content == 'Updated content for the first entry.'
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/entries/1')
+
+
+def test_delete_entry(client):
+  response = client.post('/entries/1/delete', follow_redirects=False)
+
+  deleted_entry = db.session.get(Entry, 1)
+  assert deleted_entry is None
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/entries')
