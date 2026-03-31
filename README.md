@@ -1,15 +1,23 @@
 # Mini Journal
 
-This is a super small “mini journal” project for **Web Technologies Basics (SE_19)**.
+This is a small “mini journal” project for **Web Technologies Basics (SE_19)**.
 
-It’s still meant to stay basic on purpose, but now it has a tiny Flask backend with a few routes and one dynamic route.
+It stays basic on purpose, but it now has a Flask backend, a SQLite database and a few simple pages for creating, editing and deleting journal entries.
 
 ## Routes / Pages
 
 - `/` – home page  
-- `/entries` – list of example entries (server-rendered)  
-- `/entries/<id>` – entry detail page (dynamic route)  
-- `/new` – a simple form (still doesn’t save anything yet)
+- `/entries` – list of saved entries from the database  
+- `/entries/<id>` – edit page for one entry  
+- `/new` – form for creating a new entry
+
+## What it does
+
+- uses Jinja templates to render the entries from the database
+- lets you create, update, and delete entries
+- keeps the date as a real database date field
+- includes a tiny character counter on the entry forms with a bit of JavaScript
+- has a few tests so the main routes and model actions stay in place
 
 ## Run it locally
 
@@ -27,7 +35,7 @@ If port `5001` is taken, choose another one:
 
 ## Responsive / breakpoints
 
-I kept the same responsive layout:
+I kept the same simple responsive layout:
 
 - **below 600px:** navigation is compact
 - **600px and up:** navigation has more spacing + padding
@@ -35,4 +43,4 @@ I kept the same responsive layout:
 
 ## Small note
 
-Entries are hardcoded in `app.py` for now. No database, no login, no saving.
+The app is still intentionally simple. There is no login and no fancy frontend framework, just Flask, templates and a database-backed journal.
