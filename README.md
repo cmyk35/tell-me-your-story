@@ -17,10 +17,13 @@ It’s still meant to stay basic on purpose, but now it has a tiny Flask backend
 - `pip install flask`
 
 2) Start the server:
-- `python app.py`
+- `python run.py`
 
 3) Open in your browser:
-- `http://127.0.0.1:5000`
+- `http://127.0.0.1:5001`
+
+If port `5001` is taken, choose another one:
+- `PORT=8000 python run.py`
 
 ## Responsive / breakpoints
 
@@ -33,4 +36,3 @@ I kept the same responsive layout:
 ## Small note
 
 Entries are hardcoded in `app.py` for now. No database, no login, no saving.
-
