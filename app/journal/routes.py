@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, abort
+from .models import Entry
 
 blueprint = Blueprint('journal', __name__)
 
