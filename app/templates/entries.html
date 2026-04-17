@@ -23,7 +23,7 @@
       <h1>All Entries</h1>
 
       <div class="entries-grid">
-        {% for entry in entries %}
+        {% for entry in entries_pagination.items %}
         <a href="/entries/{{ entry.id }}" style="text-decoration: none; color: inherit;">
           <article class="card">
             <span class="date">{{ entry.date }}</span>
@@ -32,6 +32,14 @@
           </article>
         </a>
         {% endfor %}
+      </div>
+      <div class="pagination">
+        {% if entries_pagination.has_prev %}
+        <a href="{{ url_for('journal.entries_list', page=entries_pagination.prev_num) }}">Previous</a>
+        {% endif %}
+        {% if entries_pagination.has_next %}
+        <a href="{{ url_for('journal.entries_list', page=entries_pagination.next_num) }}">Next</a>
+        {% endif %}
       </div>
     </div>
   </main>

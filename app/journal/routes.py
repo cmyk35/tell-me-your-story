@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, request, redirect, url_for
+from flask import Blueprint, render_template, abort, request, redirect, url_for, current_app
 from app.extensions.database import db
 from .models import Entry
 from .services import create_entry_from_form, update_entry_from_form
@@ -20,8 +20,9 @@ def index():
 
 @blueprint.route("/entries")
 def entries_list():
-    all_entries = Entry.query.all()
-    return render_template("entries.html", entries=all_entries)
+    page_number = request.args.get('page', 1, type=int)
+    entries_pagination = Entry.query.paginate(page=page_number, per_page=current_app.config['ENTRIES_PER_PAGE'])
+    return render_template("entries.html", entries_pagination=entries_pagination)
 
 @blueprint.get("/entries/<int:entry_id>")
 def entry(entry_id):

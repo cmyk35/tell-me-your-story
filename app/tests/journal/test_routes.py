@@ -44,6 +44,10 @@ def test_entries_content(client):
   response = client.get('/entries')
   assert b'All Entries' in response.data
 
+def test_entries_renders_entries(client):
+  response = client.get('/entries')
+  assert b'First day back' in response.data
+  
 def test_new_entry_content(client):
   # Returns h1 text
   response = client.get('/new')
