@@ -20,8 +20,8 @@ def create_entry_from_form(form_data):
 
 
 def update_entry_from_form(entry, form_data):
-    entry.title = form_data.get("title", "").strip()
     entry.date = parse_entry_date(form_data.get("date"))
+    entry.title = form_data.get("title", "").strip()
     entry.content = form_data.get("content", "").strip()
     entry.save()
     return entry

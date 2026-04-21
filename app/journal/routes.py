@@ -33,8 +33,29 @@ def entry(entry_id):
 @blueprint.post("/entries/<int:entry_id>")
 def update_entry(entry_id):
     found = get_entry_or_404(entry_id)
-    update_entry_from_form(found, request.form)
-    return redirect(url_for("journal.entry", entry_id=found.id))
+
+    try:
+        title = request.form.get("title", "").strip()
+        date_value = request.form.get("date", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not all([title, date_value, content]):
+            raise Exception("Please fill out all entry fields.")
+
+        if len(title) > 80:
+            raise Exception("Title must be 80 characters or fewer.")
+
+        if len(content) > 5000:
+            raise Exception("Content must be 5000 characters or fewer.")
+
+        update_entry_from_form(found, request.form)
+        return redirect(url_for("journal.entry", entry_id=found.id))
+    except Exception as error_message:
+        error = str(error_message) or "An error occurred while processing your entry. Please make sure to enter valid data."
+
+        current_app.logger.info(f"Error updating an entry: {error}")
+
+        return render_template("entry.html", entry=found, error=error)
 
 
 @blueprint.post("/entries/<int:entry_id>/delete")
@@ -51,5 +72,25 @@ def new_entry():
 
 @blueprint.post("/new")
 def create_entry():
-    entry = create_entry_from_form(request.form)
-    return redirect(url_for("journal.entry", entry_id=entry.id))
+    try:
+        title = request.form.get("title", "").strip()
+        date_value = request.form.get("date", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not all([title, date_value, content]):
+            raise Exception("Please fill out all entry fields.")
+
+        if len(title) > 80:
+            raise Exception("Title must be 80 characters or fewer.")
+
+        if len(content) > 5000:
+            raise Exception("Content must be 5000 characters or fewer.")
+
+        entry = create_entry_from_form(request.form)
+        return redirect(url_for("journal.entry", entry_id=entry.id))
+    except Exception as error_message:
+        error = str(error_message) or "An error occurred while processing your entry. Please make sure to enter valid data."
+
+        current_app.logger.info(f"Error creating an entry: {error}")
+
+        return render_template("new.html", error=error)

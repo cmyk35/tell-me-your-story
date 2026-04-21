@@ -103,3 +103,75 @@ def test_delete_entry(client):
   assert deleted_entry is None
   assert response.status_code == 302
   assert response.headers['Location'].endswith('/entries')
+
+
+def test_create_entry_missing_title_shows_error_and_logs(client, caplog):
+  with caplog.at_level('INFO', logger=client.application.logger.name):
+    response = client.post(
+      '/new',
+      data={
+        'title': '',
+        'date': '2026-04-01',
+        'content': 'This entry should not be created.',
+      },
+      follow_redirects=False,
+    )
+
+  assert response.status_code == 200
+  assert b'Please fill out all entry fields.' in response.data
+  assert Entry.query.filter_by(content='This entry should not be created.').first() is None
+  assert 'Error creating an entry: Please fill out all entry fields.' in caplog.text
+
+
+def test_create_entry_title_too_long_shows_error(client):
+  response = client.post(
+    '/new',
+    data={
+      'title': 'A' * 81,
+      'date': '2026-04-01',
+      'content': 'This entry should not be created.',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 200
+  assert b'Title must be 80 characters or fewer.' in response.data
+  assert Entry.query.filter_by(content='This entry should not be created.').first() is None
+
+
+def test_update_entry_missing_content_shows_error(client):
+  response = client.post(
+    '/entries/1',
+    data={
+      'title': 'First day back still the same',
+      'date': '2025-02-02',
+      'content': '',
+    },
+    follow_redirects=False,
+  )
+
+  unchanged_entry = db.session.get(Entry, 1)
+  assert response.status_code == 200
+  assert b'Please fill out all entry fields.' in response.data
+  assert unchanged_entry.title == 'First day back'
+  assert unchanged_entry.date == date(2025, 2, 1)
+  assert unchanged_entry.content == 'Semester started today, already three deadlines on the board.'
+
+
+def test_update_entry_invalid_date_shows_error(client):
+  response = client.post(
+    '/entries/1',
+    data={
+      'title': 'First day back still the same',
+      'date': '2025-13-40',
+      'content': 'Updated content that should not save.',
+    },
+    follow_redirects=False,
+  )
+
+  unchanged_entry = db.session.get(Entry, 1)
+  assert response.status_code == 200
+  assert b'month must be in 1..12' in response.data
+  assert unchanged_entry.title == 'First day back'
+  assert unchanged_entry.date == date(2025, 2, 1)
+  assert unchanged_entry.content == 'Semester started today, already three deadlines on the board.'
