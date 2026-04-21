@@ -1,6 +1,7 @@
 from flask import Flask, render_template, abort
 from . import journal 
 from app.extensions.database import db, migrate
+from . import users
 
 
 
@@ -16,6 +17,8 @@ def create_app():
 # Blueprints
 def register_blueprints(app: Flask):
   app.register_blueprint(journal.routes.blueprint)
+  app.register_blueprint(users.routes.blueprint)
+
 
 # Extensions
 def register_extensions(app: Flask):
