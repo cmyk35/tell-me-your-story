@@ -10,6 +10,9 @@
 
   <form method="POST">
     <div>
+      {% if error %}
+      <p style="color: tomato;">{{ error }}</p>
+      {% endif %}  
       <label for="email">Email</label>
       <input type="email" name="email" id="email" required>
     </div>

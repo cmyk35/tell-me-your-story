@@ -3,6 +3,20 @@ from werkzeug.security import check_password_hash
 from app.users.models import User
 
 
+def test_get_register_renders_registration_form(client):
+  response = client.get('/register')
+
+  assert response.status_code == 200
+  assert b'Register' in response.data
+
+
+def test_get_login_renders_login_form(client):
+  response = client.get('/login')
+
+  assert response.status_code == 200
+  assert b'Login' in response.data
+
+
 def test_post_register_password_confirmation_mismatch_shows_error(client):
   response = client.post(
     '/register',
@@ -73,3 +87,17 @@ def test_post_register_redirects_to_login_after_success(client):
 
   assert response.status_code == 302
   assert response.headers['Location'].endswith('/login')
+
+
+def test_post_login_invalid_credentials_renders_login_form(client):
+  response = client.post(
+    '/login',
+    data={
+      'email': 'missing@journal.com',
+      'password': 'wrongpass',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 200
+  assert b'Login' in response.data

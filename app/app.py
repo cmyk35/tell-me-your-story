@@ -2,6 +2,7 @@ from flask import Flask, render_template, abort
 from . import journal 
 from app.extensions.database import db, migrate
 from . import users
+from app.extensions.authentication import login_manager
 
 
 
@@ -24,6 +25,7 @@ def register_blueprints(app: Flask):
 def register_extensions(app: Flask):
   db.init_app(app)
   migrate.init_app(app, db, compare_type=True)
+  login_manager.init_app(app)
 
 
 
