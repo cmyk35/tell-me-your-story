@@ -1,4 +1,4 @@
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.users.models import User
 
@@ -101,3 +101,33 @@ def test_post_login_invalid_credentials_renders_login_form(client):
 
   assert response.status_code == 200
   assert b'Login' in response.data
+
+
+def test_get_logout_redirects_to_login_and_clears_session(client):
+  user = User(
+    email='logout@example.com',
+    password=generate_password_hash('journalpass'),
+  )
+  user.save()
+
+  login_response = client.post(
+    '/login',
+    data={
+      'email': 'logout@example.com',
+      'password': 'journalpass',
+    },
+    follow_redirects=False,
+  )
+
+  assert login_response.status_code == 302
+
+  with client.session_transaction() as session:
+    assert session.get('_user_id') == str(user.id)
+
+  response = client.get('/logout', follow_redirects=False)
+
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login')
+
+  with client.session_transaction() as session:
+    assert '_user_id' not in session
