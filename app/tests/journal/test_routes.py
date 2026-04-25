@@ -1,5 +1,4 @@
 from datetime import date
-
 from app.extensions.database import db
 from app.journal.models import Entry
 
@@ -31,6 +30,56 @@ def test_entry_not_found(authenticated_client):
   # entry page returns 404 for an unknown entry id
   response = authenticated_client.get('/entries/999')
   assert response.status_code == 404
+
+### Unauthorized access tests ###
+
+def test_entries_requires_authentication(client):
+  response = client.get('/entries')
+  assert response.status_code == 401
+
+
+def test_new_requires_authentication(client):
+  response = client.get('/new')
+  assert response.status_code == 401
+
+
+def test_single_entry_requires_authentication(client):
+  response = client.get('/entries/1')
+  assert response.status_code == 401
+
+
+def test_create_entry_requires_authentication(client):
+  response = client.post(
+    '/new',
+    data={
+      'title': 'Created without auth',
+      'date': '2026-04-01',
+      'content': 'This should be blocked.',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 401
+
+
+def test_update_entry_requires_authentication(client):
+  response = client.post(
+    '/entries/1',
+    data={
+      'title': 'Updated without auth',
+      'date': '2025-02-02',
+      'content': 'This should be blocked.',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 401
+
+
+def test_delete_entry_requires_authentication(client):
+  response = client.post('/entries/1/delete', follow_redirects=False)
+  assert response.status_code == 401
+
 
 ### HTML page content tests ###
 
