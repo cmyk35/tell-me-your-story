@@ -8,6 +8,7 @@ def test_get_register_renders_registration_form(client):
 
   assert response.status_code == 200
   assert b'Register' in response.data
+  assert b'Email' in response.data
 
 
 def test_get_login_renders_login_form(client):
@@ -15,6 +16,7 @@ def test_get_login_renders_login_form(client):
 
   assert response.status_code == 200
   assert b'Login' in response.data
+  assert b'Password' in response.data
 
 
 def test_post_register_password_confirmation_mismatch_shows_error(client):

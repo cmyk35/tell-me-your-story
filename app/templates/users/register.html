@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini Journal | Register</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Mini Journal | Register{% endblock %}
+
+{% block body %}
   <h1>Register</h1>
+
+  {% if error %}
+    <p style="color: tomato;">{{ error }}</p>
+  {% endif %}
 
   <form method="POST">
     <div>
-      {% if error %}
-      <p style="color: tomato;">{{ error }}</p>
-      {% endif %}  
       <label for="email">Email</label>
       <input type="email" name="email" id="email" required>
     </div>
@@ -29,5 +27,4 @@
     
     <input type="submit" value="Create Journal Account">
   </form>  
-</body>
-</html>
+{% endblock %}
