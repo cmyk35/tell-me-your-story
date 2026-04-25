@@ -12,24 +12,24 @@ def test_index_success(client):
   assert response.status_code == 200
 
 
-def test_entries_success(client):
+def test_entries_success(authenticated_client):
   # entries page loads
-  response = client.get('/entries')
+  response = authenticated_client.get('/entries')
   assert response.status_code == 200
 
-def test_new_success(client):
+def test_new_success(authenticated_client):
   # new entry page loads
-  response = client.get('/new')
+  response = authenticated_client.get('/new')
   assert response.status_code == 200
 
-def test_single_entry_success(client):
+def test_single_entry_success(authenticated_client):
   # entry page loads for a valid entry id
-  response = client.get('/entries/1')
+  response = authenticated_client.get('/entries/1')
   assert response.status_code == 200
 
-def test_entry_not_found(client):
+def test_entry_not_found(authenticated_client):
   # entry page returns 404 for an unknown entry id
-  response = client.get('/entries/999')
+  response = authenticated_client.get('/entries/999')
   assert response.status_code == 404
 
 ### HTML page content tests ###
@@ -39,28 +39,28 @@ def test_index_content(client):
   response = client.get('/')
   assert b'Mini Journal' in response.data
 
-def test_entries_content(client):
+def test_entries_content(authenticated_client):
   # Returns h1 text
-  response = client.get('/entries')
+  response = authenticated_client.get('/entries')
   assert b'All Entries' in response.data
 
-def test_entries_renders_entries(client):
-  response = client.get('/entries')
+def test_entries_renders_entries(authenticated_client):
+  response = authenticated_client.get('/entries')
   assert b'First day back' in response.data
   
-def test_new_entry_content(client):
+def test_new_entry_content(authenticated_client):
   # Returns h1 text
-  response = client.get('/new')
+  response = authenticated_client.get('/new')
   assert b'New Entry' in response.data
 
-def test_single_entry_content(client):
+def test_single_entry_content(authenticated_client):
   # Returns 'title' text of entry with valid entry id
-  response = client.get('/entries/1')
+  response = authenticated_client.get('/entries/1')
   assert b'First day back' in response.data
 
 
-def test_create_entry(client):
-  response = client.post(
+def test_create_entry(authenticated_client):
+  response = authenticated_client.post(
     '/new',
     data={
       'title': 'Created in test',
@@ -77,8 +77,8 @@ def test_create_entry(client):
   assert response.headers['Location'].endswith(f'/entries/{created_entry.id}')
 
 
-def test_update_entry(client):
-  response = client.post(
+def test_update_entry(authenticated_client):
+  response = authenticated_client.post(
     '/entries/1',
     data={
       'title': 'First day back updated',
@@ -96,8 +96,8 @@ def test_update_entry(client):
   assert response.headers['Location'].endswith('/entries/1')
 
 
-def test_delete_entry(client):
-  response = client.post('/entries/1/delete', follow_redirects=False)
+def test_delete_entry(authenticated_client):
+  response = authenticated_client.post('/entries/1/delete', follow_redirects=False)
 
   deleted_entry = db.session.get(Entry, 1)
   assert deleted_entry is None
@@ -105,9 +105,9 @@ def test_delete_entry(client):
   assert response.headers['Location'].endswith('/entries')
 
 
-def test_create_entry_missing_title_shows_error_and_logs(client, caplog):
-  with caplog.at_level('INFO', logger=client.application.logger.name):
-    response = client.post(
+def test_create_entry_missing_title_shows_error_and_logs(authenticated_client, caplog):
+  with caplog.at_level('INFO', logger=authenticated_client.application.logger.name):
+    response = authenticated_client.post(
       '/new',
       data={
         'title': '',
@@ -123,8 +123,8 @@ def test_create_entry_missing_title_shows_error_and_logs(client, caplog):
   assert 'Error creating an entry: Please fill out all entry fields.' in caplog.text
 
 
-def test_create_entry_title_too_long_shows_error(client):
-  response = client.post(
+def test_create_entry_title_too_long_shows_error(authenticated_client):
+  response = authenticated_client.post(
     '/new',
     data={
       'title': 'A' * 81,
@@ -139,8 +139,8 @@ def test_create_entry_title_too_long_shows_error(client):
   assert Entry.query.filter_by(content='This entry should not be created.').first() is None
 
 
-def test_update_entry_missing_content_shows_error(client):
-  response = client.post(
+def test_update_entry_missing_content_shows_error(authenticated_client):
+  response = authenticated_client.post(
     '/entries/1',
     data={
       'title': 'First day back still the same',
@@ -158,8 +158,8 @@ def test_update_entry_missing_content_shows_error(client):
   assert unchanged_entry.content == 'Semester started today, already three deadlines on the board.'
 
 
-def test_update_entry_invalid_date_shows_error(client):
-  response = client.post(
+def test_update_entry_invalid_date_shows_error(authenticated_client):
+  response = authenticated_client.post(
     '/entries/1',
     data={
       'title': 'First day back still the same',

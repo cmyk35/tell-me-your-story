@@ -5,6 +5,8 @@ from app.app import create_app
 from flask_migrate import upgrade
 from app.extensions.database import db
 from app.journal.models import Entry
+from app.users.models import User
+from werkzeug.security import generate_password_hash
 
 
 SEED_ENTRIES = [
@@ -55,3 +57,24 @@ def db_session(app):
   yield db.session
   db.session.rollback()
   db.session.remove()
+
+@pytest.fixture
+def authenticated_client(client, db_session):
+  user = User(
+    email='authenticated@example.com',
+    password=generate_password_hash('journalpass'),
+  )
+  db_session.add(user)
+  db_session.commit()
+
+  login_response = client.post(
+    '/login',
+    data={
+      'email': 'authenticated@example.com',
+      'password': 'journalpass',
+    },
+    follow_redirects=False,
+  )
+
+  assert login_response.status_code == 302
+  return client
