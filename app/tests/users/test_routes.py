@@ -19,6 +19,24 @@ def test_get_login_renders_login_form(client):
   assert b'Password' in response.data
 
 
+def test_logged_out_nav_shows_login_and_register(client):
+  response = client.get('/')
+
+  assert response.status_code == 200
+  assert b'Log in' in response.data
+  assert b'Register' in response.data
+  assert b'Log out' not in response.data
+
+
+def test_authenticated_nav_shows_logout(authenticated_client):
+  response = authenticated_client.get('/')
+
+  assert response.status_code == 200
+  assert b'Log out' in response.data
+  assert b'Log in' not in response.data
+  assert b'Register' not in response.data
+
+
 def test_post_register_password_confirmation_mismatch_shows_error(client):
   response = client.post(
     '/register',
