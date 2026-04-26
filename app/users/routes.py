@@ -2,9 +2,15 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from app.users.models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user
+from urllib.parse import urlsplit
 
 
 blueprint = Blueprint('users', __name__)
+
+
+def is_safe_next_url(target):
+  parsed_target = urlsplit(target)
+  return not parsed_target.scheme and not parsed_target.netloc
 
 
 @blueprint.get('/register')
@@ -49,6 +55,11 @@ def post_login():
       raise Exception('The password does not appear to be correct.')
     
     login_user(user)
+    next_url = request.args.get('next')
+
+    if next_url and is_safe_next_url(next_url):
+      return redirect(next_url)
+
     return redirect(url_for('journal.index'))
     
   except Exception as error_message:
