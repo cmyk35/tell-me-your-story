@@ -21,29 +21,74 @@ body {
     padding: 1rem;
 }
 
+header .container {
+    max-width: none;
+    width: 100%;
+}
+
 header {
     background-color: #474748;
     color: #fff;
     padding: 1rem;
 }
 
-nav {
+.site-nav {
     display: flex;
-    flex-direction: row;
-    gap: 0.4rem;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+    justify-content: space-between;
     align-items: center;
 }
 
-nav a {
+.nav-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.nav-primary {
+    justify-content: center;
+}
+
+.nav-auth {
+    justify-content: center;
+}
+
+.site-nav a {
     text-decoration: none;
     color: #f3f3f3;
     font-size: 0.95rem;
     padding: 0.2rem 0.4rem;
 }
 
-nav a:hover {
+.site-nav a:hover {
     color: #bda9a9fc;
+}
+
+.nav-action {
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.8rem;
+    background-color: rgba(243, 243, 243, 0.12);
+    border: 1px solid rgba(243, 243, 243, 0.18);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-action:hover {
+    color: #fff;
+    background-color: rgba(243, 243, 243, 0.22);
+    border-color: rgba(243, 243, 243, 0.35);
+}
+
+.nav-action-login,
+.nav-action-register {
+    min-width: 5rem;
+    text-align: center;
+}
+
+.nav-action-logout {
+    min-width: 5.5rem;
+    text-align: center;
 }
 
 main {
@@ -131,13 +176,30 @@ footer {
 }
 
 @media (min-width: 600px) {
-    nav {
-        gap: 1.2rem;
+    .site-nav {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+        align-items: center;
     }
-    nav a {
+
+    .nav-primary {
+        grid-column: 2;
+        justify-content: center;
+    }
+
+    .nav-auth {
+        grid-column: 3;
+        justify-content: flex-end;
+        justify-self: end;
+        margin-right: 0.1rem;
+    }
+
+    .site-nav a {
         padding: 0.4rem 0.8rem;
     }
 }
+
 
 @media (min-width: 900px) {
     main {
