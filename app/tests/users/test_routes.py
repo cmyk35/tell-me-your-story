@@ -123,6 +123,26 @@ def test_post_login_invalid_credentials_renders_login_form(client):
   assert b'Login' in response.data
 
 
+def test_post_login_redirects_to_next_url(client):
+  user = User(
+    email='next@example.com',
+    password=generate_password_hash('journalpass'),
+  )
+  user.save()
+
+  response = client.post(
+    '/login?next=/new',
+    data={
+      'email': 'next@example.com',
+      'password': 'journalpass',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/new')
+
+
 def test_get_logout_redirects_to_login_and_clears_session(client):
   user = User(
     email='logout@example.com',

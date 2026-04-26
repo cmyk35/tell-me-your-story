@@ -35,17 +35,20 @@ def test_entry_not_found(authenticated_client):
 
 def test_entries_requires_authentication(client):
   response = client.get('/entries')
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fentries')
 
 
 def test_new_requires_authentication(client):
   response = client.get('/new')
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fnew')
 
 
 def test_single_entry_requires_authentication(client):
   response = client.get('/entries/1')
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1')
 
 
 def test_create_entry_requires_authentication(client):
@@ -59,7 +62,8 @@ def test_create_entry_requires_authentication(client):
     follow_redirects=False,
   )
 
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fnew')
 
 
 def test_update_entry_requires_authentication(client):
@@ -73,12 +77,14 @@ def test_update_entry_requires_authentication(client):
     follow_redirects=False,
   )
 
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1')
 
 
 def test_delete_entry_requires_authentication(client):
   response = client.post('/entries/1/delete', follow_redirects=False)
-  assert response.status_code == 401
+  assert response.status_code == 302
+  assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1%2Fdelete')
 
 
 ### HTML page content tests ###
