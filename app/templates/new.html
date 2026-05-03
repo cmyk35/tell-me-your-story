@@ -9,6 +9,7 @@
   {% endif %}
 
   <form class="entry-form" action="{{ url_for('journal.create_entry') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-group">
       <label for="title">Title</label>
