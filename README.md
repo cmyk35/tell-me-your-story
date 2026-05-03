@@ -1,46 +1,85 @@
 # Mini Journal
 
-This is a small “mini journal” project for **Web Technologies Basics (SE_19)**.
+Mini Journal is a small Flask-based journal app for **Web Technologies Basics (SE_19)**.
 
-It stays basic on purpose, but it now has a Flask backend, a SQLite database and a few simple pages for creating, editing and deleting journal entries.
+Live app: https://tell-me-your-story.onrender.com
 
-## Routes / Pages
+The app is server-rendered with Jinja templates, backed by SQLite/PostgreSQL-compatible SQLAlchemy models, and includes user accounts so each user only sees and manages their own entries.
 
-- `/` – home page  
-- `/entries` – list of saved entries from the database  
-- `/entries/<id>` – edit page for one entry  
-- `/new` – form for creating a new entry
+## Features
 
-## What it does
+- user registration and login
+- create, edit, and delete journal entries
+- per-user entry ownership and access control
+- server-side rendering for all pages
+- a small client-side JavaScript character counter on the entry forms
+- responsive layout for mobile and larger screens
+- CSRF protection for form submissions
+- database migrations for schema changes
 
-- uses Jinja templates to render the entries from the database
-- lets you create, update, and delete entries
-- keeps the date as a real database date field
-- includes a tiny character counter on the entry forms with a bit of JavaScript
-- has a few tests so the main routes and model actions stay in place
+## Routes
 
-## Run it locally
+- `/` - home page
+- `/register` - create an account
+- `/login` - log in
+- `/logout` - log out
+- `/entries` - list the current user's entries
+- `/entries/<id>` - edit a single entry
+- `/new` - create a new entry
 
-1) Install dependencies:
-- `pip install flask`
+## Tech Stack
 
-2) Start the server:
-- `python run.py`
+- Flask
+- Jinja2
+- Flask-Login
+- Flask-WTF / CSRF protection
+- Flask-SQLAlchemy
+- Flask-Migrate / Alembic
+- SQLite for local development
+- Gunicorn for production
 
-3) Open in your browser:
-- `http://127.0.0.1:5001`
+## Local Setup
 
-If port `5001` is taken, choose another one:
+1. Create and activate a virtual environment.
+2. Install dependencies:
+   - `pip install -r requirements.txt`
+3. Set the required environment variables in a `.env` file:
+   - `SECRET_KEY`
+   - `DATABASE_URL`
+4. Run the app:
+   - `python run.py`
+5. Open:
+   - `http://127.0.0.1:5001`
+
+If you want to use a different port:
+
 - `PORT=8000 python run.py`
 
-## Responsive / breakpoints
+## Environment Variables
 
-I kept the same simple responsive layout:
+- `SECRET_KEY` - Flask session and CSRF secret
+- `DATABASE_URL` - database connection string
+- `FLASK_DEBUG` - optional local debug toggle
+- `FLASK_APP` - points to `run.py`
 
-- **below 600px:** navigation is compact
-- **600px and up:** navigation has more spacing + padding
-- **900px and up:** entries switch to a 2-column grid
+## Responsive Layout
 
-## Small note
+The site uses a simple responsive layout:
 
-The app is still intentionally simple. There is no login and no fancy frontend framework, just Flask, templates and a database-backed journal.
+- below `600px`: compact navigation
+- `600px` and up: navigation gets more spacing
+- `900px` and up: entry cards switch to a 2-column grid
+
+## Testing
+
+The repository includes tests for:
+
+- user authentication routes
+- journal CRUD routes
+- ownership and access control
+- migration behavior
+
+## Notes
+
+- The app is intentionally simple and template-driven rather than built on a frontend framework.
+- The deployed production version is hosted on Render at the link above.
