@@ -1,6 +1,31 @@
+import pytest
 from datetime import date
+
 from app.extensions.database import db
 from app.journal.models import Entry
+from app.users.models import User
+from werkzeug.security import generate_password_hash
+
+
+@pytest.fixture
+def other_user_entry(db_session):
+  other_user = User(
+    email='other@example.com',
+    password=generate_password_hash('journalpass'),
+  )
+  db_session.add(other_user)
+  db_session.commit()
+
+  entry = Entry(
+    date=date(2025, 3, 1),
+    title='Private entry',
+    content='Private content for another user.',
+    user=other_user,
+  )
+  db_session.add(entry)
+  db_session.commit()
+
+  return entry
 
 
 ### Simple routes tests ###
@@ -102,6 +127,13 @@ def test_entries_content(authenticated_client):
 def test_entries_renders_entries(authenticated_client):
   response = authenticated_client.get('/entries')
   assert b'First day back' in response.data
+
+def test_entries_only_shows_current_users_entries(authenticated_client, other_user_entry):
+  response = authenticated_client.get('/entries')
+
+  assert response.status_code == 200
+  assert b'First day back' in response.data
+  assert b'Private entry' not in response.data
   
 def test_new_entry_content(authenticated_client):
   # Returns h1 text
@@ -112,6 +144,29 @@ def test_single_entry_content(authenticated_client):
   # Returns 'title' text of entry with valid entry id
   response = authenticated_client.get('/entries/1')
   assert b'First day back' in response.data
+
+def test_single_entry_of_other_user_returns_404(authenticated_client, other_user_entry):
+  response = authenticated_client.get(f'/entries/{other_user_entry.id}')
+
+  assert response.status_code == 404
+
+def test_update_entry_of_other_user_returns_404(authenticated_client, other_user_entry):
+  response = authenticated_client.post(
+    f'/entries/{other_user_entry.id}',
+    data={
+      'title': 'Updated private entry',
+      'date': '2025-03-02',
+      'content': 'This should not be allowed.',
+    },
+    follow_redirects=False,
+  )
+
+  assert response.status_code == 404
+
+def test_delete_entry_of_other_user_returns_404(authenticated_client, other_user_entry):
+  response = authenticated_client.post(f'/entries/{other_user_entry.id}/delete', follow_redirects=False)
+
+  assert response.status_code == 404
 
 
 def test_create_entry(authenticated_client):
@@ -126,8 +181,11 @@ def test_create_entry(authenticated_client):
   )
 
   created_entry = Entry.query.filter_by(title='Created in test').first()
+  seeded_user = User.query.filter_by(email='authenticated@example.com').first()
   assert created_entry is not None
+  assert seeded_user is not None
   assert created_entry.date == date(2026, 4, 1)
+  assert created_entry.user_id == seeded_user.id
   assert response.status_code == 302
   assert response.headers['Location'].endswith(f'/entries/{created_entry.id}')
 
@@ -144,9 +202,12 @@ def test_update_entry(authenticated_client):
   )
 
   updated_entry = db.session.get(Entry, 1)
+  seeded_user = User.query.filter_by(email='authenticated@example.com').first()
+  assert seeded_user is not None
   assert updated_entry.title == 'First day back updated'
   assert updated_entry.date == date(2025, 2, 2)
   assert updated_entry.content == 'Updated content for the first entry.'
+  assert updated_entry.user_id == seeded_user.id
   assert response.status_code == 302
   assert response.headers['Location'].endswith('/entries/1')
 

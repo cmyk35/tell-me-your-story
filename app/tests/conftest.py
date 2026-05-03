@@ -19,6 +19,15 @@ SEED_ENTRIES = [
 
 
 def seed_entries():
+  user = User.query.filter_by(email='authenticated@example.com').first()
+  if user is None:
+    user = User(
+      email='authenticated@example.com',
+      password=generate_password_hash('journalpass'),
+    )
+    db.session.add(user)
+    db.session.commit()
+
   for entry in SEED_ENTRIES:
     entry_date = date.fromisoformat(entry["date"])
     exists = Entry.query.filter_by(date=entry_date, title=entry["title"]).first()
@@ -30,6 +39,7 @@ def seed_entries():
         date=entry_date,
         title=entry["title"],
         content=entry["content"],
+        user=user,
       )
     )
 
@@ -59,14 +69,7 @@ def db_session(app):
   db.session.remove()
 
 @pytest.fixture
-def authenticated_client(client, db_session):
-  user = User(
-    email='authenticated@example.com',
-    password=generate_password_hash('journalpass'),
-  )
-  db_session.add(user)
-  db_session.commit()
-
+def authenticated_client(client):
   login_response = client.post(
     '/login',
     data={

@@ -1,11 +1,15 @@
 from datetime import date
 from app.extensions.database import db
 from app.journal.models import Entry
+from app.users.models import User
 
 
 def test_entry_update(db_session):
+    user = User.query.filter_by(email='authenticated@example.com').first()
+    assert user is not None
+
     # Create a new entry
-    entry = Entry(title='Day 1', content='Today was great!', date=date(2024, 1, 1))
+    entry = Entry(title='Day 1', content='Today was great!', date=date(2024, 1, 1), user=user)
     db_session.add(entry)
     db_session.commit()
 
@@ -22,8 +26,11 @@ def test_entry_update(db_session):
     assert updated_entry.date == date(2024, 1, 1)
 
 def test_entry_delete(client):
+    user = User.query.filter_by(email='authenticated@example.com').first()
+    assert user is not None
+
     # deletes entry
-    entry = Entry(title='Day 2', content='Today was the best!', date=date(2026, 1, 2))
+    entry = Entry(title='Day 2', content='Today was the best!', date=date(2026, 1, 2), user=user)
     db.session.add(entry)
     db.session.commit()
 
