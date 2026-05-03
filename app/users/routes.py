@@ -66,7 +66,7 @@ def post_login():
     error = error_message or 'An error occurred while logging in. Please verify your email and password.'
     return render_template('users/login.html', error=error)
 
-@blueprint.get('/logout')
+@blueprint.post('/logout')
 def logout():
   logout_user()
   
