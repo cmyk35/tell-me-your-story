@@ -37,10 +37,11 @@ def test_authenticated_nav_shows_logout(authenticated_client):
   assert b'Register' not in response.data
 
 
-def test_post_register_password_confirmation_mismatch_shows_error(client):
+def test_post_register_password_confirmation_mismatch_shows_error(client, csrf_token):
   response = client.post(
     '/register',
     data={
+      'csrf_token': csrf_token(client, '/register'),
       'email': 'reader@example.com',
       'password': 'journalpass',
       'password_confirmation': 'differentpass',
@@ -53,7 +54,7 @@ def test_post_register_password_confirmation_mismatch_shows_error(client):
   assert User.query.filter_by(email='reader@example.com').first() is None
 
 
-def test_post_register_duplicate_email_shows_error(client):
+def test_post_register_duplicate_email_shows_error(client, csrf_token):
   existing_user = User(
     email='already@journal.com',
     password='pbkdf2:sha256:dummyhash',
@@ -63,6 +64,7 @@ def test_post_register_duplicate_email_shows_error(client):
   response = client.post(
     '/register',
     data={
+      'csrf_token': csrf_token(client, '/register'),
       'email': 'already@journal.com',
       'password': 'journalpass',
       'password_confirmation': 'journalpass',
@@ -75,10 +77,12 @@ def test_post_register_duplicate_email_shows_error(client):
   assert User.query.filter_by(email='already@journal.com').count() == 1
 
 
-def test_post_register_creates_user_with_hashed_password(client):
+def test_post_register_creates_user_with_hashed_password(client, csrf_token):
+
   response = client.post(
     '/register',
     data={
+      'csrf_token': csrf_token(client, '/register'),
       'email': 'new@journal.com',
       'password': 'journalpass',
       'password_confirmation': 'journalpass',
@@ -94,10 +98,12 @@ def test_post_register_creates_user_with_hashed_password(client):
   assert check_password_hash(created_user.password, 'journalpass')
 
 
-def test_post_register_redirects_to_login_after_success(client):
+def test_post_register_redirects_to_login_after_success(client, csrf_token):
+
   response = client.post(
     '/register',
     data={
+      'csrf_token': csrf_token(client, '/register'),
       'email': 'redirect@journal.com',
       'password': 'journalpass',
       'password_confirmation': 'journalpass',
@@ -109,10 +115,12 @@ def test_post_register_redirects_to_login_after_success(client):
   assert response.headers['Location'].endswith('/login')
 
 
-def test_post_login_invalid_credentials_renders_login_form(client):
+def test_post_login_invalid_credentials_renders_login_form(client, csrf_token):
+
   response = client.post(
     '/login',
     data={
+      'csrf_token': csrf_token(client, '/login'),
       'email': 'missing@journal.com',
       'password': 'wrongpass',
     },
@@ -123,7 +131,7 @@ def test_post_login_invalid_credentials_renders_login_form(client):
   assert b'Login' in response.data
 
 
-def test_post_login_redirects_to_next_url(client):
+def test_post_login_redirects_to_next_url(client, csrf_token):
   user = User(
     email='next@example.com',
     password=generate_password_hash('journalpass'),
@@ -133,6 +141,7 @@ def test_post_login_redirects_to_next_url(client):
   response = client.post(
     '/login?next=/new',
     data={
+      'csrf_token': csrf_token(client, '/login'),
       'email': 'next@example.com',
       'password': 'journalpass',
     },
@@ -143,7 +152,7 @@ def test_post_login_redirects_to_next_url(client):
   assert response.headers['Location'].endswith('/new')
 
 
-def test_get_logout_redirects_to_login_and_clears_session(client):
+def test_post_logout_redirects_to_login_and_clears_session(client, csrf_token):
   user = User(
     email='logout@example.com',
     password=generate_password_hash('journalpass'),
@@ -153,6 +162,7 @@ def test_get_logout_redirects_to_login_and_clears_session(client):
   login_response = client.post(
     '/login',
     data={
+      'csrf_token': csrf_token(client, '/login'),
       'email': 'logout@example.com',
       'password': 'journalpass',
     },
@@ -164,10 +174,20 @@ def test_get_logout_redirects_to_login_and_clears_session(client):
   with client.session_transaction() as session:
     assert session.get('_user_id') == str(user.id)
 
-  response = client.get('/logout', follow_redirects=False)
+  response = client.post(
+    '/logout',
+    data={'csrf_token': csrf_token(client, '/')},
+    follow_redirects=False,
+  )
 
   assert response.status_code == 302
   assert response.headers['Location'].endswith('/login')
 
   with client.session_transaction() as session:
     assert '_user_id' not in session
+
+
+def test_get_logout_is_not_allowed(client):
+  response = client.get('/logout', follow_redirects=False)
+
+  assert response.status_code == 405

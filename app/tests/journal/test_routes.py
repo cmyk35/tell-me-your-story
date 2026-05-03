@@ -76,10 +76,12 @@ def test_single_entry_requires_authentication(client):
   assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1')
 
 
-def test_create_entry_requires_authentication(client):
+def test_create_entry_requires_authentication(client, csrf_token):
+
   response = client.post(
     '/new',
     data={
+      'csrf_token': csrf_token(client, '/login'),
       'title': 'Created without auth',
       'date': '2026-04-01',
       'content': 'This should be blocked.',
@@ -91,10 +93,12 @@ def test_create_entry_requires_authentication(client):
   assert response.headers['Location'].endswith('/login?next=%2Fnew')
 
 
-def test_update_entry_requires_authentication(client):
+def test_update_entry_requires_authentication(client, csrf_token):
+
   response = client.post(
     '/entries/1',
     data={
+      'csrf_token': csrf_token(client, '/login'),
       'title': 'Updated without auth',
       'date': '2025-02-02',
       'content': 'This should be blocked.',
@@ -106,8 +110,9 @@ def test_update_entry_requires_authentication(client):
   assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1')
 
 
-def test_delete_entry_requires_authentication(client):
-  response = client.post('/entries/1/delete', follow_redirects=False)
+def test_delete_entry_requires_authentication(client, csrf_token):
+
+  response = client.post('/entries/1/delete', data={'csrf_token': csrf_token(client, '/login')}, follow_redirects=False)
   assert response.status_code == 302
   assert response.headers['Location'].endswith('/login?next=%2Fentries%2F1%2Fdelete')
 
@@ -150,10 +155,11 @@ def test_single_entry_of_other_user_returns_404(authenticated_client, other_user
 
   assert response.status_code == 404
 
-def test_update_entry_of_other_user_returns_404(authenticated_client, other_user_entry):
+def test_update_entry_of_other_user_returns_404(authenticated_client, other_user_entry, csrf_token):
   response = authenticated_client.post(
     f'/entries/{other_user_entry.id}',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/entries/1'),
       'title': 'Updated private entry',
       'date': '2025-03-02',
       'content': 'This should not be allowed.',
@@ -163,16 +169,22 @@ def test_update_entry_of_other_user_returns_404(authenticated_client, other_user
 
   assert response.status_code == 404
 
-def test_delete_entry_of_other_user_returns_404(authenticated_client, other_user_entry):
-  response = authenticated_client.post(f'/entries/{other_user_entry.id}/delete', follow_redirects=False)
+def test_delete_entry_of_other_user_returns_404(authenticated_client, other_user_entry, csrf_token):
+  response = authenticated_client.post(
+    f'/entries/{other_user_entry.id}/delete',
+    data={'csrf_token': csrf_token(authenticated_client, '/entries/1')},
+    follow_redirects=False,
+  )
 
   assert response.status_code == 404
 
 
-def test_create_entry(authenticated_client):
+def test_create_entry(authenticated_client, csrf_token):
+
   response = authenticated_client.post(
     '/new',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/new'),
       'title': 'Created in test',
       'date': '2026-04-01',
       'content': 'This entry came from a POST request.',
@@ -190,10 +202,12 @@ def test_create_entry(authenticated_client):
   assert response.headers['Location'].endswith(f'/entries/{created_entry.id}')
 
 
-def test_update_entry(authenticated_client):
+def test_update_entry(authenticated_client, csrf_token):
+
   response = authenticated_client.post(
     '/entries/1',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/entries/1'),
       'title': 'First day back updated',
       'date': '2025-02-02',
       'content': 'Updated content for the first entry.',
@@ -212,8 +226,13 @@ def test_update_entry(authenticated_client):
   assert response.headers['Location'].endswith('/entries/1')
 
 
-def test_delete_entry(authenticated_client):
-  response = authenticated_client.post('/entries/1/delete', follow_redirects=False)
+def test_delete_entry(authenticated_client, csrf_token):
+
+  response = authenticated_client.post(
+    '/entries/1/delete',
+    data={'csrf_token': csrf_token(authenticated_client, '/entries/1')},
+    follow_redirects=False,
+  )
 
   deleted_entry = db.session.get(Entry, 1)
   assert deleted_entry is None
@@ -221,11 +240,13 @@ def test_delete_entry(authenticated_client):
   assert response.headers['Location'].endswith('/entries')
 
 
-def test_create_entry_missing_title_shows_error_and_logs(authenticated_client, caplog):
+def test_create_entry_missing_title_shows_error_and_logs(authenticated_client, caplog, csrf_token):
+
   with caplog.at_level('INFO', logger=authenticated_client.application.logger.name):
     response = authenticated_client.post(
       '/new',
       data={
+        'csrf_token': csrf_token(authenticated_client, '/new'),
         'title': '',
         'date': '2026-04-01',
         'content': 'This entry should not be created.',
@@ -239,10 +260,12 @@ def test_create_entry_missing_title_shows_error_and_logs(authenticated_client, c
   assert 'Error creating an entry: Please fill out all entry fields.' in caplog.text
 
 
-def test_create_entry_title_too_long_shows_error(authenticated_client):
+def test_create_entry_title_too_long_shows_error(authenticated_client, csrf_token):
+
   response = authenticated_client.post(
     '/new',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/new'),
       'title': 'A' * 81,
       'date': '2026-04-01',
       'content': 'This entry should not be created.',
@@ -255,10 +278,12 @@ def test_create_entry_title_too_long_shows_error(authenticated_client):
   assert Entry.query.filter_by(content='This entry should not be created.').first() is None
 
 
-def test_update_entry_missing_content_shows_error(authenticated_client):
+def test_update_entry_missing_content_shows_error(authenticated_client, csrf_token):
+
   response = authenticated_client.post(
     '/entries/1',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/entries/1'),
       'title': 'First day back still the same',
       'date': '2025-02-02',
       'content': '',
@@ -274,10 +299,12 @@ def test_update_entry_missing_content_shows_error(authenticated_client):
   assert unchanged_entry.content == 'Semester started today, already three deadlines on the board.'
 
 
-def test_update_entry_invalid_date_shows_error(authenticated_client):
+def test_update_entry_invalid_date_shows_error(authenticated_client, csrf_token):
+
   response = authenticated_client.post(
     '/entries/1',
     data={
+      'csrf_token': csrf_token(authenticated_client, '/entries/1'),
       'title': 'First day back still the same',
       'date': '2025-13-40',
       'content': 'Updated content that should not save.',

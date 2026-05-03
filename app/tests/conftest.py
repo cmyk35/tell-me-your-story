@@ -1,6 +1,7 @@
 import pytest
 from os import environ
 from datetime import date
+import re
 from app.app import create_app
 from flask_migrate import upgrade
 from app.extensions.database import db
@@ -16,6 +17,14 @@ SEED_ENTRIES = [
   {"date": "2025-02-15", "title": "Coffee shop session (again)", "content": "Tried working from a café. Would recommend, very productive vibes."},
   {"date": "2025-02-20", "title": "Almost done", "content": "Hand-in is next week."},
 ]
+
+CSRF_TOKEN_PATTERN = re.compile(r'name="csrf_token"[^>]*value="([^"]+)"')
+
+
+def extract_csrf_token(response_text):
+  match = CSRF_TOKEN_PATTERN.search(response_text)
+  assert match is not None, 'CSRF token not found in response HTML'
+  return match.group(1)
 
 
 def seed_entries():
@@ -70,9 +79,13 @@ def db_session(app):
 
 @pytest.fixture
 def authenticated_client(client):
+  login_page = client.get('/login')
+  csrf_token = extract_csrf_token(login_page.get_data(as_text=True))
+
   login_response = client.post(
     '/login',
     data={
+      'csrf_token': csrf_token,
       'email': 'authenticated@example.com',
       'password': 'journalpass',
     },
@@ -81,3 +94,12 @@ def authenticated_client(client):
 
   assert login_response.status_code == 302
   return client
+
+
+@pytest.fixture
+def csrf_token():
+  def _csrf_token(client, path='/login'):
+    response = client.get(path)
+    return extract_csrf_token(response.get_data(as_text=True))
+
+  return _csrf_token
