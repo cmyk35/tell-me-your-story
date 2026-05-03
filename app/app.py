@@ -3,6 +3,7 @@ from . import journal
 from app.extensions.database import db, migrate
 from . import users
 from app.extensions.authentication import login_manager
+from app.extensions.csrf import csrf
 
 
 
@@ -26,7 +27,7 @@ def register_extensions(app: Flask):
   db.init_app(app)
   migrate.init_app(app, db, compare_type=True)
   login_manager.init_app(app)
-
+  csrf.init_app(app)
 
 
 
