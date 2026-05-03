@@ -9,11 +9,12 @@ def parse_entry_date(raw_date):
     return date.fromisoformat(raw_date)
 
 
-def create_entry_from_form(form_data):
+def create_entry_from_form(form_data, user):
     entry = Entry(
         title=form_data.get("title", "").strip(),
         date=parse_entry_date(form_data.get("date")),
         content=form_data.get("content", "").strip(),
+        user=user,
     )
     entry.save()
     return entry

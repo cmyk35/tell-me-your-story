@@ -2,13 +2,13 @@ from flask import Blueprint, render_template, abort, request, redirect, url_for,
 from app.extensions.database import db
 from .models import Entry
 from .services import create_entry_from_form, update_entry_from_form
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 blueprint = Blueprint('journal', __name__)
 
 
 def get_entry_or_404(entry_id):
-    found = db.session.get(Entry, entry_id)
+    found = Entry.query.filter_by(id=entry_id, user_id=current_user.id).first()
     if found is None:
         abort(404)
     return found
@@ -23,7 +23,10 @@ def index():
 @login_required
 def entries_list():
     page_number = request.args.get('page', 1, type=int)
-    entries_pagination = Entry.query.paginate(page=page_number, per_page=current_app.config['ENTRIES_PER_PAGE'])
+    entries_pagination = Entry.query.filter_by(user_id=current_user.id).paginate(
+        page=page_number,
+        per_page=current_app.config['ENTRIES_PER_PAGE'],
+    )
     return render_template("entries.html", entries_pagination=entries_pagination)
 
 @blueprint.get("/entries/<int:entry_id>")
@@ -93,7 +96,7 @@ def create_entry():
         if len(content) > 5000:
             raise Exception("Content must be 5000 characters or fewer.")
 
-        entry = create_entry_from_form(request.form)
+        entry = create_entry_from_form(request.form, current_user)
         return redirect(url_for("journal.entry", entry_id=entry.id))
     except Exception as error_message:
         error = str(error_message) or "An error occurred while processing your entry. Please make sure to enter valid data."
