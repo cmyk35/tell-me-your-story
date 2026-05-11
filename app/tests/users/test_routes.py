@@ -1,6 +1,23 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.users.routes import is_safe_next_url
 from app.users.models import User
+
+
+def test_is_safe_next_url_accepts_internal_path():
+  assert is_safe_next_url('/entries') is True
+
+
+def test_is_safe_next_url_accepts_internal_path_with_query():
+  assert is_safe_next_url('/entries?page=2') is True
+
+
+def test_is_safe_next_url_rejects_external_https_url():
+  assert is_safe_next_url('https://evil.example.com') is False
+
+
+def test_is_safe_next_url_rejects_protocol_relative_external_url():
+  assert is_safe_next_url('//evil.example.com') is False
 
 
 def test_get_register_renders_registration_form(client):
